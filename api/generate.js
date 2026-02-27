@@ -5,6 +5,9 @@ export default async function handler(req, res) {
   if (!description || typeof description !== "string" || description.trim().length < 5) {
     return res.status(400).json({ error: "Description too short." });
   }
+  if (description.length > 1000) {
+    return res.status(400).json({ error: "Description too long." });
+  }
 
   const sys = `You are a coffee profile generator. Parse the user's freeform coffee description into JSON. Return ONLY valid JSON, no markdown, no backticks, no preamble.
 {"name":"Mi cafecitoDNA","flavors":["tag1","tag2","tag3"],"intensity":"Light / Medium / Medium-strong / Strong","intensityNote":"short note","sweetness":"None / Hint / Half sweet / Moderate / Sweet","sweetnessNote":"short note","milk":"None / Dairy / Oat milk / Almond milk / etc","temperature":"Hot / Iced / Either","temperatureNote":"optional note or empty string","dealbreakers":["hate1","hate2"],"drinks":[{"name":"Drink","emoji":"☕","why":"One line."},{"name":"Drink","emoji":"🍫","why":"One line."},{"name":"Drink","emoji":"🧊","why":"One line."}]}
