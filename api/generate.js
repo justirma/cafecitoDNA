@@ -1,5 +1,26 @@
+const rateLimit = new Map();
+const LIMIT = 8;
+const WINDOW_MS = 10 * 60 * 1000; // 10 minutes
+
+function checkRate(ip) {
+  const now = Date.now();
+  const entry = rateLimit.get(ip);
+  if (!entry || now > entry.reset) {
+    rateLimit.set(ip, { count: 1, reset: now + WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= LIMIT) return false;
+  entry.count++;
+  return true;
+}
+
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).end();
+
+  const ip = (req.headers["x-forwarded-for"] || req.socket?.remoteAddress || "unknown").split(",")[0].trim();
+  if (!checkRate(ip)) {
+    return res.status(429).json({ error: "Too many requests. Try again in a few minutes." });
+  }
 
   const { description } = req.body;
   if (!description || typeof description !== "string" || description.trim().length < 5) {

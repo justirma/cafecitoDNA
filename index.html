@@ -7,6 +7,12 @@
   <meta name="description" content="Discover your cafecitoDNA. Tell us in your own words. Created by Lento." />
   <meta property="og:title" content="What's your cafecitoDNA?" />
   <meta property="og:description" content="Tell us what you like in coffee. AI turns it into a profile you can show any barista." />
+  <meta property="og:image" content="https://cafecitodna.vercel.app/og.svg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:url" content="https://cafecitodna.vercel.app" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23FF914C'/><text x='50' y='72' font-family='serif' font-size='58' text-anchor='middle' fill='%23CF7040'>l</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <style>
@@ -15,6 +21,10 @@
     @keyframes fadeIn { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
     @keyframes fadeUp { from{opacity:0;transform:translateY(14px)} to{opacity:1;transform:translateY(0)} }
   </style>
+  <script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]);t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.crossOrigin="anonymous",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(void 0!==a?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+" (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveyResponse getNextSurveyStep onSessionId".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_j0JpBqgDJ6C49pjNHCj0k96hUJzG0hQCa3vWfswNbxB', { api_host: 'https://us.i.posthog.com' });
+  </script>
 </head>
 <body>
   <div id="root"></div>
@@ -186,11 +196,11 @@
             </div>
 
             <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14, marginTop: 16 }}>
-              <a href={INSTAGRAM_LINK} target="_blank" rel="noopener noreferrer" style={{
+              <a href={INSTAGRAM_LINK} target="_blank" rel="noopener noreferrer" onClick={() => posthog.capture('instagram_clicked')} style={{
                 fontFamily: "'Pacifico',cursive", fontSize: 15, color: L.orange, textDecoration: "none",
               }}>lento</a>
               <span style={{ color: L.mutedLight, fontSize: 10 }}>·</span>
-              <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" style={{
+              <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" onClick={() => posthog.capture('whatsapp_clicked')} style={{
                 fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 500,
                 color: L.muted, textDecoration: "none", borderBottom: `1px solid ${L.muted}30`,
               }}>💬 Feedback</a>
@@ -211,6 +221,7 @@
       const handleShare = () => {
         navigator.clipboard.writeText(profileText).then(() => {
           setCopied(true); setTimeout(() => setCopied(false), 2200);
+          posthog.capture('card_shared');
         });
       };
 
@@ -346,11 +357,11 @@
             <div style={{
               display: "flex", alignItems: "center", justifyContent: "center", gap: 14, marginTop: 20,
             }}>
-              <a href={INSTAGRAM_LINK} target="_blank" rel="noopener noreferrer" style={{
+              <a href={INSTAGRAM_LINK} target="_blank" rel="noopener noreferrer" onClick={() => posthog.capture('instagram_clicked')} style={{
                 fontFamily: "'Pacifico',cursive", fontSize: 15, color: L.orange, textDecoration: "none",
               }}>lento</a>
               <span style={{ color: L.mutedLight, fontSize: 10 }}>·</span>
-              <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" style={{
+              <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer" onClick={() => posthog.capture('whatsapp_clicked')} style={{
                 fontFamily: "'DM Sans',sans-serif", fontSize: 12, fontWeight: 500,
                 color: L.muted, textDecoration: "none", borderBottom: `1px solid ${L.muted}30`,
               }}>💬 Feedback</a>
@@ -379,9 +390,21 @@
           if (!res.ok) throw new Error(data.error || "Server error");
           setProfile(data);
           setScreen("card");
+          posthog.capture('dna_generated', {
+            description: desc,
+            description_length: desc.length,
+            flavors: data.flavors,
+            intensity: data.intensity,
+            sweetness: data.sweetness,
+            milk: data.milk,
+            temperature: data.temperature,
+            dealbreakers: data.dealbreakers,
+            drinks: (data.drinks || []).map(d => d.name),
+          });
         } catch (e) {
           console.error(e);
           setError("Algo salió mal · Something went wrong!");
+          posthog.capture('generation_failed', { error: e.message });
         } finally { setLoading(false); }
       };
 
