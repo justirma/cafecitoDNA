@@ -26,14 +26,6 @@
   <script type="text/babel">
     const { useState, useEffect } = React;
 
-    // ─────────────────────────────────────────────────────
-    // ⚠️  PASTE YOUR ANTHROPIC API KEY BELOW
-    //     Get one at: https://console.anthropic.com
-    //     Set a $5/month spend limit for safety
-    // ─────────────────────────────────────────────────────
-    const API_KEY = "YOUR_API_KEY_HERE";
-    // ─────────────────────────────────────────────────────
-
     const L = {
       orange: "#FF914C", orangeDeep: "#CF7040", orangeDark: "#B85E30",
       green: "#2F5F3A", teal: "#017680", coral: "#C76356",
@@ -361,24 +353,15 @@
 
       const generate = async (desc) => {
         setLoading(true); setError(null);
-        const sys = `You are a coffee profile generator. Parse the user's freeform coffee description into JSON. Return ONLY valid JSON, no markdown, no backticks, no preamble.
-{"name":"Mi cafecitoDNA","flavors":["tag1","tag2","tag3"],"intensity":"Light / Medium / Medium-strong / Strong","intensityNote":"short note","sweetness":"None / Hint / Half sweet / Moderate / Sweet","sweetnessNote":"short note","milk":"None / Dairy / Oat milk / Almond milk / etc","temperature":"Hot / Iced / Either","temperatureNote":"optional note or empty string","dealbreakers":["hate1","hate2"],"drinks":[{"name":"Drink","emoji":"☕","why":"One line."},{"name":"Drink","emoji":"🍫","why":"One line."},{"name":"Drink","emoji":"🧊","why":"One line."}]}
-Pick fitting emojis. Keep notes concise. 3 real orderable drinks.`;
         try {
-          const res = await fetch("https://api.anthropic.com/v1/messages", {
+          const res = await fetch("/api/generate", {
             method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "x-api-key": API_KEY,
-              "anthropic-version": "2023-06-01",
-              "anthropic-dangerous-direct-browser-access": "true",
-            },
-            body: JSON.stringify({ model: "claude-sonnet-4-20250514", max_tokens: 1000, system: sys, messages: [{ role: "user", content: desc }] }),
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ description: desc }),
           });
           const data = await res.json();
-          if (data.error) throw new Error(data.error.message);
-          const txt = data.content.map(i => i.type === "text" ? i.text : "").filter(Boolean).join("\n");
-          setProfile(JSON.parse(txt.replace(/```json|```/g, "").trim()));
+          if (!res.ok) throw new Error(data.error || "Server error");
+          setProfile(data);
           setScreen("card");
         } catch (e) {
           console.error(e);
